@@ -1,0 +1,18 @@
+.page-container {
+  background: linear-gradient(180deg, #dde3ee 0%, #66c6fa 70%, #b3daea 100%);
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
+  color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 6rem;
+  margin-bottom: 20px;
+  color: black;
+}

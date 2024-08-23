@@ -1,0 +1,101 @@
+/* General container styles */
+.page-container {
+    /* padding: 2rem; */
+    background-color: #f8f9fa;
+    min-height: 100vh;
+  }
+  
+  /* Title styling */
+  .title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Shadow container for options */
+  .my-4 {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Fixed height container with scrollbar */
+  .fixed-size-container {
+    max-height: 300px; /* Set your desired fixed height */
+    overflow-y: auto; /* Enable vertical scrollbar when content exceeds height */
+  }
+  
+  /* Reorder item styles */
+  .reorder-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 0.375rem; /* Slightly rounded corners */
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Add spacing and styling for form control */
+  .reorder-item .form-control {
+    margin-right: 1rem;
+  }
+  
+  /* Button styles */
+  button {
+    font-size: 0.875rem;
+  }
+  
+  /* Container padding and alignment */
+  .d-flex {
+    display: flex;
+  }
+  
+  .justify-content-between {
+    justify-content: space-between;
+  }
+  
+  .align-items-center {
+    align-items: center;
+  }
+  
+  /* Button variant styles */
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .btn-outline-danger {
+    border-color: #dc3545;
+  }
+  
+  .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+  
+  /* Additional styling for shadows and rounded corners */
+  .shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+  
+  .bg-white {
+    background-color: #ffffff;
+  }
+  
+  .bg-light {
+    background-color: #f8f9fa;
+  }
+  
+  .rounded {
+    border-radius: 0.375rem;
+  }
+  
+  /* Optional: Center text */
+  .text-center {
+    text-align: center;
+  }
+  
+  .text-muted {
+    color: #6c757d;
+  }
+  
