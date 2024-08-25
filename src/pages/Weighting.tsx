@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Row,
@@ -9,8 +9,8 @@ import {
   Form,
   Tabs,
   Tab,
+  Alert,
 } from "react-bootstrap";
-import { motion } from "framer-motion";
 import { ItemList as itemListType, Item } from "../assets/interfaces";
 import { Bar } from "react-chartjs-2";
 import {
@@ -57,53 +57,91 @@ const Weighting: React.FC = () => {
     }))
   );
 
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string[]>([]);
+
+  useEffect(() => {
+    const newAlertMessage: string[] = [];
+
+    // Check if Criteria consistency exceeds the threshold
+    if (calculateConsistency(criteriaWeights) > 0.1) {
+      newAlertMessage.push("Criteria");
+    }
+
+    // Check if any item in the criteria exceeds the threshold
+    itemList.criteria.forEach((item: Item) => {
+      if (calculateConsistency(optionsWeights[item.id].weights) > 0.1) {
+        newAlertMessage.push(item.name);
+      }
+    });
+
+    // Update the alert message and showAlert state
+    if (newAlertMessage.length > 0) {
+      setAlertMessage(newAlertMessage);
+      setShowAlert(true);
+    } else {
+      setShowAlert(false);
+    }
+  }, [criteriaWeights, optionsWeights, itemList.criteria]);
+
   console.log("decision", location.state);
   console.log("itemList", itemList);
+  console.log("optionsWeights", optionsWeights);
+  console.log("criteriaWeights", criteriaWeights);
 
-  const handleWeightChange = (
+  const handleCriteriaWeightChange = (
+    item1: Item,
+    item2: Item,
+    value: number
+  ) => {
+    // Validate the input value: must be positive and non-zero
+    const checkedValue = value > 0 ? value : 1;
+
+    const newWeights = criteriaWeights.map((row, i) =>
+      row.map((weight, j) => {
+        if (i === item1.id && j === item2.id) {
+          return checkedValue;
+        } else if (i === item2.id && j === item1.id) {
+          return 1 / checkedValue;
+        } else {
+          return weight;
+        }
+      })
+    );
+
+    setCriteriaWeights(newWeights);
+  };
+
+  const handleOptionsWeightChange = (
     criterion: Item,
     item1: Item,
     item2: Item,
-    value: number,
-    criteria: boolean
+    value: number
   ) => {
-    if (criteria) {
-      const newWeights = criteriaWeights.map((row, i) =>
-        row.map((weight, j) => {
-          if (i === item1.id && j === item2.id) {
-            return value;
-          } else if (i === item2.id && j === item1.id) {
-            return 1 / value;
-          } else {
-            return weight;
-          }
-        })
-      );
-      setCriteriaWeights(newWeights);
-    } else {
-      const newWeights = optionsWeights[criterion.id].weights.map((row, i) =>
-        row.map((weight, j) => {
-          if (i === item1.id && j === item2.id) {
-            return value;
-          } else if (i === item2.id && j === item1.id) {
-            return 1 / value;
-          } else {
-            return weight;
-          }
-        })
-      );
+    const checkedValue = value > 0 ? value : 1;
 
-      setOptionsWeights(
-        optionsWeights.map((form, i) =>
-          i === criterion.id ? { item: criterion, weights: newWeights } : form
-        )
-      );
-    }
+    const newWeights = optionsWeights[criterion.id].weights.map((row, i) =>
+      row.map((weight, j) => {
+        if (i === item1.id && j === item2.id) {
+          return checkedValue;
+        } else if (i === item2.id && j === item1.id) {
+          return 1 / checkedValue;
+        } else {
+          return weight;
+        }
+      })
+    );
+
+    setOptionsWeights(
+      optionsWeights.map((form, i) =>
+        i === criterion.id ? { item: criterion, weights: newWeights } : form
+      )
+    );
   };
 
-  function formatNumber(num) {
-    return num % 1 === 0 ? num : parseFloat(num.toFixed(2));
-  }
+  const formatNumber = (num: number) => {
+    return parseFloat(num.toFixed(2));
+  };
 
   const tabs = [
     {
@@ -121,14 +159,12 @@ const Weighting: React.FC = () => {
                 <Form.Control
                   type="number"
                   placeholder="0"
-                  value={criteriaWeights[item1.id][item2.id]}
+                  value={formatNumber(criteriaWeights[item1.id][item2.id])}
                   onChange={(e) =>
-                    handleWeightChange(
-                      itemList.criteria[item1.id],
+                    handleCriteriaWeightChange(
                       item1,
                       item2,
-                      parseFloat(e.target.value),
-                      true
+                      parseFloat(e.target.value)
                     )
                   }
                   onClick={() => handleFormControlClick(item1, item2)}
@@ -160,12 +196,11 @@ const Weighting: React.FC = () => {
                       ?.weights[item1.id][item2.id] || 1
                   )}
                   onChange={(e) =>
-                    handleWeightChange(
+                    handleOptionsWeightChange(
                       criterion,
                       item1,
                       item2,
-                      parseFloat(e.target.value),
-                      false
+                      parseFloat(e.target.value)
                     )
                   }
                   onClick={() => handleFormControlClick(item1, item2)}
@@ -285,34 +320,34 @@ const Weighting: React.FC = () => {
 
   const [hoverItem1, setHoverItem1] = useState("");
   const [hoverItem2, setHoverItem2] = useState("");
+  const [titleDisplay, setTitleDisplay] = useState(false);
   const handleFormControlClick = (item1: Item, item2: Item) => {
     setHoverItem1(item1.name);
     setHoverItem2(item2.name);
+    setTitleDisplay(true);
   };
 
   return (
     <div className="page-container">
       <Container>
-        <Row>
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
-            className="title text-center"
-          >
-            First, Let's Define your Criteria and Options here
-          </motion.h1>
-        </Row>
-        <Row>
+        <Row className="mb-3">
           <Col xl={8}>
             <Card>
               <Card.Body>
-                <Tabs defaultActiveKey="Criteria" id="weighting-tabs">
+                <Tabs
+                  defaultActiveKey="Criteria"
+                  id="weighting-tabs"
+                  onClick={() => setTitleDisplay(false)}
+                >
                   {tabs.map((tab, index) => (
                     <Tab key={index} eventKey={tab.name} title={tab.name}>
-                      <h3>
-                        The importance of {hoverItem1} over {hoverItem2}
-                      </h3>
+                      {titleDisplay ? (
+                        <h3>
+                          The importance of {hoverItem1} over {hoverItem2}
+                        </h3>
+                      ) : (
+                        <h3>Pairwise Comparisons</h3>
+                      )}
                       <ul>
                         <li>1 = Equal</li>
                         <li>3 = Moderate</li>
@@ -343,7 +378,16 @@ const Weighting: React.FC = () => {
                         </thead>
                         <tbody>{tab.html}</tbody>
                       </Table>
-                      <p>Consistency: {formatNumber(tab.consistency)}</p>
+                      <p
+                        style={{
+                          color:
+                            formatNumber(tab.consistency) > 0.1
+                              ? "red"
+                              : "black",
+                        }}
+                      >
+                        Consistency: {formatNumber(tab.consistency)}
+                      </p>
                     </Tab>
                   ))}
                 </Tabs>
@@ -351,18 +395,40 @@ const Weighting: React.FC = () => {
             </Card>
           </Col>
           <Col xl={4}>
-            <Card>
-              <Card.Body>
-                <Bar options={criteriaOptions} data={criteriaData} />
-              </Card.Body>
-            </Card>
-            <Card>
-              <Card.Body>
-                <Bar options={optionsChartOptions} data={optionsData} />
-              </Card.Body>
-            </Card>
+            <Row className="mb-3">
+              <Card>
+                <Card.Body>
+                  <Bar options={criteriaOptions} data={criteriaData} />
+                </Card.Body>
+              </Card>
+            </Row>
+            <Row>
+              <Card>
+                <Card.Body>
+                  <Bar options={optionsChartOptions} data={optionsData} />
+                </Card.Body>
+              </Card>
+            </Row>
           </Col>
         </Row>
+        {showAlert ? (
+          <Row>
+            <Col>
+              <Alert variant="danger">
+                <Alert.Heading>
+                  Error: The following items' consistency rate is over 0.1
+                </Alert.Heading>
+                <ul>
+                  {alertMessage.map((message, index) => (
+                    <li key={index}>{message}</li>
+                  ))}
+                </ul>
+              </Alert>
+            </Col>
+          </Row>
+        ) : (
+          <></>
+        )}
         <Row>
           <Col>
             <Card>

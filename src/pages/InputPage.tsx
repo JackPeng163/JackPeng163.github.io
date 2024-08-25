@@ -9,6 +9,7 @@ import {
   Card,
   ListGroup,
   Alert,
+  ButtonGroup,
 } from "react-bootstrap";
 import { motion, useAnimation, Reorder } from "framer-motion";
 import { faL, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -24,6 +25,12 @@ const InputPage: React.FC = () => {
     message: "No decision provided",
   };
 
+  const [criteriaSuggestions, setCriteriaSuggestions] = useState<string[]>(
+    location.state?.decision.criteria
+  );
+  const [optionsSuggestions, setOptionsSuggestions] = useState<string[]>(
+    location.state?.decision.options
+  );
   const [criteria, setCriteria] = useState<Item[]>([]);
   const [criterionIdCounter, setCriterionIdCounter] = useState(0);
   const [options, setOptions] = useState<Item[]>([]);
@@ -32,10 +39,18 @@ const InputPage: React.FC = () => {
   const [alertShow, setAlertShow] = useState(false);
   const [message, setMessage] = useState<string>("");
 
-  const handleAddCriterion = () => {
+  const handleCriterionSuggestion = (name: string) => {
+    const newCriteriaSuggestions = criteriaSuggestions.filter(
+      (criterion) => criterion !== name
+    );
+    setCriteriaSuggestions(newCriteriaSuggestions);
+    handleAddCriterion(name);
+  };
+
+  const handleAddCriterion = (name: string) => {
     const newCriterion: Item = {
       id: criterionIdCounter,
-      name: "",
+      name: name,
     };
     setCriteria([...criteria, newCriterion]);
     setCriterionIdCounter(criterionIdCounter + 1);
@@ -54,10 +69,18 @@ const InputPage: React.FC = () => {
     setCriteria(newCriteria);
   };
 
-  const handleAddOption = () => {
+  const handleOptionSuggestion = (name: string) => {
+    const newOptionSuggestions = optionsSuggestions.filter(
+      (option) => option !== name
+    );
+    setOptionsSuggestions(newOptionSuggestions);
+    handleAddOption(name);
+  };
+
+  const handleAddOption = (name: string) => {
     const newOption: Item = {
       id: optionIdCounter,
-      name: "",
+      name: name,
     };
     setOptions([...options, newOption]);
     setOptionIdCounter(optionIdCounter + 1);
@@ -96,7 +119,10 @@ const InputPage: React.FC = () => {
           }
       });
       navigate("/weighting", {
-        state: { decision: decision, itemList: { criteria: criteria, options: options } },
+        state: {
+          decision: decision,
+          itemList: { criteria: criteria, options: options },
+        },
       });
     }
   };
@@ -105,17 +131,27 @@ const InputPage: React.FC = () => {
     <div className="page-container">
       <Container className="my-5">
         <Row>
-          <div>
-            <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1, delay: 1 }}
-              className="title text-center"
-            >
-              Welcome to Decision Copilot
-            </motion.h1>
-          </div>
+          <motion.h1
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, delay: 1 }}
+            className="title text-center"
+          >
+            Welcome to Decision Copilot
+          </motion.h1>
+        </Row>
+        <Row>
+          <motion.h4
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, delay: 1 }}
+            className=""
+          >
+            In this page, define your criteria and options for decision:{" "}
+            <strong>{decision.decision}</strong>
+          </motion.h4>
         </Row>
         <motion.div
           initial={{ opacity: 0 }}
@@ -125,19 +161,38 @@ const InputPage: React.FC = () => {
         >
           <Row>
             <Col>
-              <Card>
+              <Card style={{ minHeight: "100%" }}>
                 <Card.Header>Criteria</Card.Header>
                 <Card.Body>
                   <Card.Title>
                     Add your <strong>Criteria</strong> here!
                   </Card.Title>
                   <Card.Text>
-                    A paragraph describing the purpose and functionality of this
-                    card
+                    This card helps you define and organize{" "}
+                    <strong>criteria</strong> for the AHP process. Add, reorder,
+                    or remove criteria as needed. Use suggested buttons if you
+                    need inspiration to start.
                   </Card.Text>
-                  <Button onClick={handleAddCriterion} variant="primary">
-                    Add Criterion
-                  </Button>
+                  {criteriaSuggestions.map((criterion, index) => (
+                    <Button
+                      variant="info"
+                      style={{ maxHeight: "250px" }}
+                      onClick={() => handleCriterionSuggestion(criterion)}
+                      className="mb-2 me-2"
+                    >
+                      {criterion}
+                    </Button>
+                  ))}
+                  <Row>
+                    <Col>
+                      <Button
+                        onClick={() => handleAddCriterion("")}
+                        variant="primary"
+                      >
+                        Add Your Own Criterion
+                      </Button>
+                    </Col>
+                  </Row>
                 </Card.Body>
                 <ListGroup className="list-group-flush">
                   <ListGroup.Item>
@@ -189,19 +244,37 @@ const InputPage: React.FC = () => {
               </Card>
             </Col>
             <Col>
-              <Card>
+              <Card style={{ minHeight: "100%" }}>
                 <Card.Header>Options</Card.Header>
                 <Card.Body>
                   <Card.Title>
                     Add your <strong>Options</strong> here!
                   </Card.Title>
                   <Card.Text>
-                    A paragraph describing the purpose and functionality of this
-                    card
+                    This card helps you define and organize{" "}
+                    <strong>options (alternatives)</strong> for the AHP process.
+                    Add, reorder, or remove criteria as needed. Use suggested
+                    buttons if you need inspiration to start.
                   </Card.Text>
-                  <Button onClick={handleAddOption} variant="primary">
-                    Add Option
-                  </Button>
+                  {optionsSuggestions.map((option, index) => (
+                    <Button
+                      variant="info"
+                      onClick={() => handleOptionSuggestion(option)}
+                      className="mb-2 me-2"
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                  <Row>
+                    <Col>
+                      <Button
+                        onClick={() => handleAddOption("")}
+                        variant="primary"
+                      >
+                        Add Your Own Option
+                      </Button>
+                    </Col>
+                  </Row>
                 </Card.Body>
                 <ListGroup className="list-group-flush">
                   <ListGroup.Item>

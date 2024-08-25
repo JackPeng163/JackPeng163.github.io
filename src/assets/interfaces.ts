@@ -17,3 +17,9 @@ export interface Result {
   item: Item;
   result: number;
 }
+
+export interface Suggestion {
+  decision: string;
+  criteria: string[];
+  options: string[];
+}

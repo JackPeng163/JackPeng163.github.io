@@ -8,22 +8,41 @@ import {
   Button,
   ToggleButton,
   Container,
+  Dropdown,
+  InputGroup,
 } from "react-bootstrap";
 import { motion } from "framer-motion";
+import { suggestions } from "../assets/suggestions";
+import { Suggestion } from "../assets/interfaces";
 
 const IntroPage: React.FC = () => {
   const navigate = useNavigate();
   const [radioValue, setRadioValue] = useState("1");
-  const radios = [
-    { name: "Home", value: "1" },
-    { name: "About", value: "2" },
-    { name: "Github", value: "3" },
-    { name: "Contact", value: "4" },
-  ];
-  const [decision, setDecision] = useState("");
+  const [decision, setDecision] = useState<Suggestion>({
+    decision: "",
+    criteria: [],
+    options: [],
+  });
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleDecision = (value: string) => {
+  const filteredSuggestions = suggestions
+    .filter((suggestion) =>
+      suggestion.decision
+        .toLowerCase()
+        .includes(decision.decision.toLowerCase())
+    )
+    .slice(0, 10); // Show only 8 suggestions
+
+  const handleDecision = (value: Suggestion) => {
     setDecision(value);
+    setShowDropdown(
+      value.decision.length > 0 || filteredSuggestions.length > 0
+    );
+  };
+
+  const handleSelectSuggestion = (suggestion: Suggestion) => {
+    setDecision(suggestion);
+    setShowDropdown(false);
   };
 
   const handleNextPage = () => {
@@ -46,18 +65,20 @@ const IntroPage: React.FC = () => {
             }}
           >
             <ButtonGroup className="bg-white rounded shadow-sm">
-              {radios.map((radio, idx) => (
+              {["Home", "About", "Github", "Contact"].map((name, idx) => (
                 <ToggleButton
                   key={idx}
                   id={`radio-${idx}`}
                   type="radio"
-                  variant={radioValue === radio.value ? "info" : "outline-info"}
+                  variant={
+                    radioValue === `${idx + 1}` ? "info" : "outline-info"
+                  }
                   name="radio"
-                  value={radio.value}
-                  checked={radioValue === radio.value}
+                  value={`${idx + 1}`}
+                  checked={radioValue === `${idx + 1}`}
                   onChange={(e) => setRadioValue(e.currentTarget.value)}
                 >
-                  {radio.name}
+                  {name}
                 </ToggleButton>
               ))}
             </ButtonGroup>
@@ -94,28 +115,56 @@ const IntroPage: React.FC = () => {
           transition={{ duration: 1, delay: 1.5 }}
         >
           <Row className="justify-content-center">
-            <Col xs={0} md={3}></Col>
-            <Col xs={12} md={4}>
-              <Form.Control
-                type="text"
-                placeholder="Select or Input your decision"
-                aria-label="Decision Input"
-                value={decision}
-                onChange={(e) => handleDecision(e.target.value)}
-                className="mb-3"
-                style={{ color: "black" }}
-              />
-            </Col>
-            <Col xs={6} md={2}>
-              <Button
-                className="w-100"
-                variant="primary"
-                onClick={handleNextPage}
-              >
-                Get started
-              </Button>
-            </Col>
-            <Col xs={0} md={3}></Col>
+            <Dropdown
+              show={showDropdown}
+              onToggle={() => setShowDropdown(false)}
+            >
+              <Row>
+                <InputGroup>
+                  <Col xl={10}>
+                    <Form.Control
+                      type="text"
+                      placeholder="Select or Input your decision"
+                      aria-label="Decision Input"
+                      value={decision.decision}
+                      onChange={(e) =>
+                        handleDecision({
+                          decision: e.target.value,
+                          criteria: [],
+                          options: [],
+                        })
+                      }
+                      onClick={() => setShowDropdown(true)}
+                      className="mb-3"
+                      style={{ color: "black" }}
+                    />
+
+                    <Dropdown.Menu
+                      className="w-100"
+                      style={{ maxHeight: "400px", overflowY: "auto" }}
+                    >
+                      {filteredSuggestions.map((suggestion, idx) => (
+                        <Dropdown.Item
+                          key={idx}
+                          onClick={() => handleSelectSuggestion(suggestion)}
+                        >
+                          {suggestion.decision}
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Col>
+                  <Col xl={2}>
+                    <Button
+                      className="w-100"
+                      variant="primary"
+                      onClick={handleNextPage}
+                    >
+                      Get started
+                    </Button>
+                  </Col>
+                </InputGroup>
+              </Row>
+            </Dropdown>
           </Row>
         </motion.div>
       </Container>
@@ -123,5 +172,4 @@ const IntroPage: React.FC = () => {
   );
 };
 
-    
 export default IntroPage;
